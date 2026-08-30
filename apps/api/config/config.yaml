@@ -67,6 +67,9 @@ payments_config:
     stripe_webhook_connect_secret: ""    # whsec_...
 
 ai_config:
+  # Prabodh Part 2: AI stays OFF until api_key (below) is a real key for whichever
+  # provider is configured. Flip to true only after api_key is filled in — see
+  # docs/prabodh/part2-ai-architecture.md and part2-gemini-provider.md.
   is_ai_enabled: false
   # Provider-agnostic generation (Pydantic AI). Set provider + api_key to use any
   # supported provider: google | openai | anthropic | deepseek | moonshot | mistral | openrouter | bedrock | ollama.
@@ -74,24 +77,47 @@ ai_config:
   # For "openrouter": leave base_url blank (auto-set) and use OpenRouter model slugs like
   # "anthropic/claude-sonnet-4-5" or "openai/gpt-4o-mini" in the model_* fields below.
   # For "bedrock": use standard AWS credentials (env/role/profile) + AWS_REGION; api_key optional.
+  #
+  # CURRENT ACTIVE PROVIDER: Google Gemini, for local/demo development — a Gemini
+  # free-tier key is available for this phase. The original Part 2 specification
+  # targets Claude/Anthropic as the production provider; that path is fully intact
+  # and selectable by changing provider to "anthropic" and api_key to a Claude key —
+  # see part2-gemini-provider.md for the full rationale and the switch-back steps.
+  # api_key here is the Gemini API key (from https://aistudio.google.com/apikey) — can
+  # also be set via the LEARNHOUSE_AI_API_KEY env var instead of committing it here.
   provider: "google"
   api_key: ""
   base_url: ""
-  # Three model tiers. Leave blank to use the built-in Gemini 3 defaults.
-  model_fast: ""        # titles, follow-ups, migration                 (default: gemini-3.1-flash-lite)
-  model_standard: ""    # chat, RAG, course planning / blocks (std plan) (default: gemini-3.5-flash)
-  model_pro: ""         # course planning / blocks (Pro+ plan)          (default: gemini-3.1-pro-preview)
-  # RAG embeddings follow the chosen provider (Google / OpenAI family incl. Ollama). Override
-  # any of these; embedding_dimensions defaults to 768 to match the pgvector column (changing
-  # it requires a DB migration + re-index). Providers without embeddings (Anthropic, DeepSeek, Moonshot,
-  # Mistral, OpenRouter, Bedrock) fall back to Google when gemini_api_key is set.
-  embedding_provider: ""    # default: same as `provider`
+  # Three model tiers. Leave blank to use the built-in per-provider defaults (Gemini 3
+  # family while provider=google, Claude 5 family while provider=anthropic — see
+  # src/services/ai/llm/tiers.py, which keeps both sets and picks by `provider` above).
+  # NOTE: image generation (services/ai/image) and audio/TTS generation (services/ai/audio)
+  # are NOT covered by these tiers — always Google-only (Gemini has no separate config
+  # needed here since Google IS the active provider; Claude has no image/audio API at all
+  # regardless of provider). See part2-ai-architecture.md.
+  model_fast: ""        # titles, follow-ups, magic blocks, playgrounds/boards gen (default: gemini-3.1-flash-lite)
+  model_standard: ""    # chat, RAG, course planning / blocks (std plan)           (default: gemini-3.6-flash)
+  model_pro: ""         # course planning / blocks (Pro+ plan)                     (default: gemini-3.1-pro-preview)
+  # RAG embeddings follow the chosen provider (Google / OpenAI family incl. Ollama). With
+  # provider=google (current), embeddings work out of the box using the same api_key above
+  # — no embedding_provider override needed. (Only Anthropic/DeepSeek/Moonshot/Mistral/
+  # OpenRouter/Bedrock lack an embeddings API and need embedding_provider set explicitly.)
+  # embedding_dimensions defaults to 768 to match the pgvector column (changing it requires
+  # a DB migration + re-index).
+  embedding_provider: ""    # blank = same as `provider` (google) — fine as-is
   embedding_model: ""       # default per provider (e.g. gemini-embedding-001, text-embedding-3-small)
   embedding_dimensions: ""  # default: 768
-  # Google/Gemini key. Also the embeddings fallback for providers that lack an embeddings API.
+  # Legacy dedicated Gemini key field. Not needed while provider=google and api_key
+  # (above) is set — that single key already covers text, embeddings, image, and audio.
+  # Only relevant if provider is switched to something else (e.g. anthropic) but you still
+  # want Google to power image/audio/embeddings on the side.
   gemini_api_key: ""
   # Media generation (Google-only, uses the Google GenAI SDK regardless of `provider`,
   # resolving its key from `api_key` when provider=google, else `gemini_api_key`).
+  # Defaults left on the Gemini 2.5 family deliberately — the newer Gemini 3 image models
+  # (gemini-3.1-flash-image / gemini-3-pro-image, "Nano Banana 2/Pro") require allowlist
+  # access on some projects and can 404/429 unpredictably; override once your key's access
+  # is confirmed. See part2-gemini-provider.md.
   image_model: ""       # AI image generation           (default: gemini-2.5-flash-image)
   tts_model: ""         # AI audio / podcast generation  (default: gemini-2.5-flash-preview-tts)
 

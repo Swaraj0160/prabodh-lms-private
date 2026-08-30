@@ -302,26 +302,29 @@ export const HeaderProfileBox = ({ primaryColor = '' }: { primaryColor?: string 
                   </>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger className="flex items-center gap-2 space-x-2">
-                    <Globe size={14} weight="fill" />
-                    <span>{t('common.language')}</span>
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuPortal>
-                    <DropdownMenuSubContent>
-                      {AVAILABLE_LANGUAGES.map((language) => (
-                        <DropdownMenuItem 
-                          key={language.code}
-                          onClick={() => changeLanguage(language.code)}
-                          className="flex items-center justify-between"
-                        >
-                          <span>{t(language.translationKey)} ({language.nativeName})</span>
-                          {i18n.language.split('-')[0] === language.code && <Check size={14} weight="bold" />}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuPortal>
-                </DropdownMenuSub>
+                {/* Prabodh ships English only — a switcher with one option is dead UI. */}
+                {AVAILABLE_LANGUAGES.length > 1 && (
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger className="flex items-center gap-2 space-x-2">
+                      <Globe size={14} weight="fill" />
+                      <span>{t('common.language')}</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                      <DropdownMenuSubContent>
+                        {AVAILABLE_LANGUAGES.map((language) => (
+                          <DropdownMenuItem
+                            key={language.code}
+                            onClick={() => changeLanguage(language.code)}
+                            className="flex items-center justify-between"
+                          >
+                            <span>{t(language.translationKey)} ({language.nativeName})</span>
+                            {i18n.language.split('-')[0] === language.code && <Check size={14} weight="bold" />}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                  </DropdownMenuSub>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {

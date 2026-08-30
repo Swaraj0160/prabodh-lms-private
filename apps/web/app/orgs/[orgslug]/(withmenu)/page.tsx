@@ -22,7 +22,13 @@ export async function generateMetadata(props: MetadataProps): Promise<Metadata> 
   const ogImageUrl = seoConfig.default_og_image
     ? getOrgOgImageMediaDirectory(org?.org_uuid, seoConfig.default_og_image)
     : null
-  const imageUrl = ogImageUrl || getOrgThumbnailMediaDirectory(org?.org_uuid, org?.thumbnail_image)
+  // Only build a thumbnail URL when a file is actually set — the media-directory
+  // helpers below just interpolate the fileId into a path, so an empty/undefined
+  // thumbnail_image previously produced a URL pointing at a directory with no
+  // filename (".../thumbnails/"), which crawlers would fetch and fail on.
+  const imageUrl = ogImageUrl || (org?.thumbnail_image
+    ? getOrgThumbnailMediaDirectory(org?.org_uuid, org?.thumbnail_image)
+    : null)
   const canonical = await getServerCanonicalUrl(params.orgslug, '/')
   const title = buildPageTitle('Home', org.name, seoConfig)
   const description = org.description || seoConfig.default_meta_description || ''
@@ -55,20 +61,15 @@ export async function generateMetadata(props: MetadataProps): Promise<Metadata> 
       title,
       description,
       type: 'website',
-      images: [
-        {
-          url: imageUrl,
-          width: 800,
-          height: 600,
-          alt: org.name,
-        },
-      ],
+      ...(imageUrl
+        ? { images: [{ url: imageUrl, width: 800, height: 600, alt: org.name }] }
+        : {}),
     },
     twitter: {
-      card: 'summary_large_image',
+      card: imageUrl ? 'summary_large_image' : 'summary',
       title,
       description,
-      images: [imageUrl],
+      ...(imageUrl ? { images: [imageUrl] } : {}),
       ...(seoConfig.twitter_handle && { site: seoConfig.twitter_handle }),
     },
   }

@@ -1,14 +1,15 @@
 import 'server-only'
 import { send } from './resend'
+import { getLEARNHOUSE_HTTP_PROTOCOL_VAL, getLEARNHOUSE_DOMAIN_VAL } from '@services/config/config'
 
 // Non-billing transactional emails (welcome, contact). Same never-throw contract
 // as the billing mails: fire-and-forget, no-op without RESEND_API_KEY.
 
 export async function sendWelcomeAccountMail(args: { email: string; username?: string }): Promise<void> {
   const { email, username } = args
-  await send(email, 'Welcome to LearnHouse 👋', {
+  await send(email, 'Welcome to Prabodh 👋', {
     accentColor: '#171717',
-    heading: 'Welcome to LearnHouse!',
+    heading: 'Welcome to Prabodh!',
     subtitle: username
       ? `Hey ${username}, we're thrilled to have you on board.`
       : "We're thrilled to have you on board.",
@@ -18,7 +19,7 @@ export async function sendWelcomeAccountMail(args: { email: string; username?: s
       'Invite learners and track their progress.',
       'Brand your school and share it with the world.',
     ],
-    cta: { label: 'Get started', href: 'https://www.learnhouse.io/home' },
+    cta: { label: 'Get started', href: `${getLEARNHOUSE_HTTP_PROTOCOL_VAL()}${getLEARNHOUSE_DOMAIN_VAL()}/home` },
   })
 }
 
@@ -29,7 +30,7 @@ export async function sendContactMail(args: {
   to?: string
 }): Promise<void> {
   const { fromEmail, name, message, to } = args
-  await send(to || 'hello@learnhouse.app', `New contact form message from ${name || fromEmail}`, {
+  await send(to || 'hello@prabodh.example', `New contact form message from ${name || fromEmail}`, {
     accentColor: '#171717',
     heading: 'New contact message',
     subtitle: `From ${name ? `${name} · ` : ''}${fromEmail}`,

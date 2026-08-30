@@ -8,6 +8,7 @@ from fastapi import Request
 from src.db.users import AnonymousUser, PublicUser
 from src.security.features_utils.dependencies import (
     _check_feature_enabled,
+    require_ai_enabled,
     require_boards_feature,
     require_courses_feature,
     require_courses_feature_by_activity_uuid,
@@ -430,3 +431,53 @@ class TestFeatureDependencies:
 
         assert result is True
         mock_check.assert_called_once_with("playgrounds", 31, db_session)
+
+
+class TestRequireAiEnabled:
+    """Platform-wide AI enable/disable gate (Part 2). Independent of any
+    per-organization 'ai' feature flag — this is the operator's global switch."""
+
+    async def test_rejects_anonymous_caller_before_checking_platform_flag(self):
+        # An anonymous caller must get 401, never a 403 that leaks whether AI is
+        # configured on this platform — see test_unauth_ai_billing.py for the
+        # end-to-end version of this contract across every AI router.
+        with patch(
+            "config.config.get_learnhouse_config",
+            return_value=SimpleNamespace(ai_config=SimpleNamespace(is_ai_enabled=True)),
+        ):
+            with pytest.raises(HTTPException) as exc_info:
+                await require_ai_enabled(current_user=AnonymousUser())
+
+        assert exc_info.value.status_code == 401
+
+    async def test_rejects_when_platform_ai_disabled(self):
+        with patch(
+            "config.config.get_learnhouse_config",
+            return_value=SimpleNamespace(ai_config=SimpleNamespace(is_ai_enabled=False)),
+        ):
+            with pytest.raises(HTTPException) as exc_info:
+                await require_ai_enabled(current_user=_public_user())
+
+        assert exc_info.value.status_code == 403
+        assert "not enabled" in exc_info.value.detail.lower()
+
+    async def test_rejects_when_is_ai_enabled_missing(self):
+        # A config object with no is_ai_enabled attribute at all must fail closed,
+        # not raise an AttributeError and not silently allow AI through.
+        with patch(
+            "config.config.get_learnhouse_config",
+            return_value=SimpleNamespace(ai_config=SimpleNamespace()),
+        ):
+            with pytest.raises(HTTPException) as exc_info:
+                await require_ai_enabled(current_user=_public_user())
+
+        assert exc_info.value.status_code == 403
+
+    async def test_allows_authenticated_caller_when_platform_ai_enabled(self):
+        with patch(
+            "config.config.get_learnhouse_config",
+            return_value=SimpleNamespace(ai_config=SimpleNamespace(is_ai_enabled=True)),
+        ):
+            result = await require_ai_enabled(current_user=_public_user())
+
+        assert result is True

@@ -13,7 +13,7 @@ from src.core.events.database import get_db_session
 from src.db.users import PublicUser, AnonymousUser, APITokenUser
 from src.security.auth import get_current_user, resolve_acting_user_id
 from src.security.features_utils.usage import reserve_ai_credit
-from src.security.features_utils.dependencies import require_playgrounds_feature
+from src.security.features_utils.dependencies import require_ai_enabled, require_playgrounds_feature
 from src.services.ai.llm import model_for_tier
 from src.services.playgrounds.playgrounds_generator import (
     get_playground_session,
@@ -28,7 +28,7 @@ from src.services.playgrounds.schemas.playgrounds_generator import (
     PlaygroundMessage,
 )
 
-router = APIRouter(dependencies=[Depends(require_playgrounds_feature)])
+router = APIRouter(dependencies=[Depends(require_ai_enabled), Depends(require_playgrounds_feature)])
 
 
 async def event_generator(generator, session_uuid: str):

@@ -48,7 +48,13 @@ const OrgEditOther: React.FC = () => {
   const queryClient = useQueryClient()
   const plan = usePlan()
   const isFree = plan === 'free'
-  const isEE = getDeploymentMode() === 'ee'
+  const deploymentMode = getDeploymentMode()
+  const isEE = deploymentMode === 'ee'
+  // A self-hosted OSS deployment never shows LearnHouse's own watermark
+  // either — see Watermark.tsx / (withmenu)/layout.tsx. The toggle below
+  // must reflect that, or it lies to the admin about what's actually shown.
+  const isOSS = deploymentMode === 'oss'
+  const isWatermarkForcedHidden = isEE || isOSS
   const [selectedView, setSelectedView] = React.useState<'list' | 'edit'>('list')
   const [scripts, setScripts] = React.useState<Script[]>([])
   const [currentScript, setCurrentScript] = React.useState<Script | null>(null)
@@ -166,15 +172,17 @@ const OrgEditOther: React.FC = () => {
             <p className="text-sm text-gray-500">
               {isEE
                 ? t('dashboard.organization.settings.watermark_ee')
-                : isFree
-                  ? t('dashboard.organization.settings.watermark_free_plan')
-                  : t('dashboard.organization.settings.watermark_desc')}
+                : isOSS
+                  ? t('dashboard.organization.settings.watermark_oss', { defaultValue: 'Hidden on this self-hosted deployment' })
+                  : isFree
+                    ? t('dashboard.organization.settings.watermark_free_plan')
+                    : t('dashboard.organization.settings.watermark_desc')}
             </p>
           </div>
           <Switch
-            checked={isEE ? false : watermarkEnabled}
+            checked={isWatermarkForcedHidden ? false : watermarkEnabled}
             onCheckedChange={updateWatermark}
-            disabled={isWatermarkSaving || isFree || isEE}
+            disabled={isWatermarkSaving || isFree || isWatermarkForcedHidden}
           />
         </div>
       </div>

@@ -426,6 +426,17 @@ export const isEEAvailable = (): boolean => {
   return getDeploymentMode() === 'ee'
 }
 
+/**
+ * Platform-wide AI switch (LEARNHOUSE_IS_AI_ENABLED), from the LH_ai_enabled
+ * cookie set by middleware from the backend's public /instance/info endpoint.
+ * Defaults to false when the cookie is absent (safe fallback — never claim AI
+ * is available when we don't actually know). Independent of any per-org "ai"
+ * feature toggle (see OrgEditAI) — both must be true for AI to actually work.
+ */
+export const isPlatformAiEnabled = (): boolean => {
+  return getCookieValue('LH_ai_enabled') === 'true'
+}
+
 // Collaboration server WebSocket URL
 export const getCollabUrl = () => getConfig('NEXT_PUBLIC_COLLAB_URL', 'ws://localhost:4000')
 

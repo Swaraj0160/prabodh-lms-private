@@ -16,10 +16,12 @@ function Watermark() {
     const watermarkConfig = org?.config?.config?.customization?.general?.watermark ?? org?.config?.config?.general?.watermark
 
     // Visibility rules, in priority order:
-    //   1. EE         → always hidden (white-label is part of the EE license).
+    //   1. EE / OSS   → always hidden (white-label is part of EE; a self-hosted
+    //                   OSS deployment is not LearnHouse's own SaaS product,
+    //                   so it never carries LearnHouse's promotional badge).
     //   2. SaaS free  → always shown (free tier is branded).
     //   3. Otherwise  → respect the admin's toggle (default on).
-    if (mode === 'ee') return null
+    if (mode === 'ee' || mode === 'oss') return null
     const showWatermark = plan === 'free' || watermarkConfig !== false
     if (!showWatermark) return null
 

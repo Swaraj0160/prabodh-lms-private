@@ -5,7 +5,7 @@ import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { toast } from 'react-hot-toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query/keys'
-import { getAPIUrl } from '@services/config/config'
+import { getAPIUrl, isPlatformAiEnabled } from '@services/config/config'
 import { revalidateTags } from '@services/utils/ts/requests'
 import { useTranslation } from 'react-i18next'
 import FeatureGate from '@components/Dashboard/Shared/FeatureGate/FeatureGate'
@@ -26,6 +26,11 @@ const OrgEditAI: React.FC = () => {
   const [aiEnabled, setAiEnabled] = React.useState<boolean>(false)
   const [copilotEnabled, setCopilotEnabled] = React.useState<boolean>(true)
   const [isUpdating, setIsUpdating] = React.useState<boolean>(false)
+  // Platform-wide switch (LEARNHOUSE_IS_AI_ENABLED), independent of this org's
+  // own "ai" toggle below. Previously this screen had no visibility into it at
+  // all, so the toggles below rendered fully interactive even when the backend
+  // rejected every AI request with 403 — see docs/prabodh/frontend-ai-surfaces.md.
+  const platformAiEnabled = isPlatformAiEnabled()
 
   React.useEffect(() => {
     const config = org?.config?.config
@@ -93,7 +98,7 @@ const OrgEditAI: React.FC = () => {
         <div className="flex items-center gap-3">
           <Image
             src="/learnhouse_ai_simple_colored.png"
-            alt="LearnHouse AI"
+            alt="Prabodh AI"
             width={28}
             height={28}
           />
@@ -117,6 +122,17 @@ const OrgEditAI: React.FC = () => {
           </div>
         )}
 
+        {/* Platform-wide notice: this org's toggle below has no effect unless the
+            deployment operator has also enabled AI platform-wide. */}
+        {!platformAiEnabled && (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 border border-gray-200">
+            <ShieldAlert className="w-4 h-4 text-gray-500 flex-shrink-0" />
+            <p className="text-sm text-gray-700">
+              {t('dashboard.organization.ai.platform_disabled')}
+            </p>
+          </div>
+        )}
+
         {/* Main AI toggle */}
         <SettingRow
           icon={<BrainCircuit className="w-4 h-4" />}
@@ -127,7 +143,7 @@ const OrgEditAI: React.FC = () => {
             setAiEnabled(checked)
             updateAIConfig({ ai_enabled: checked })
           }}
-          disabled={isUpdating || !canEditOrgSettings}
+          disabled={isUpdating || !canEditOrgSettings || !platformAiEnabled}
         />
 
         {/* Sub-features (only when AI is enabled) */}
@@ -142,7 +158,7 @@ const OrgEditAI: React.FC = () => {
                 setCopilotEnabled(checked)
                 updateAIConfig({ copilot_enabled: checked })
               }}
-              disabled={isUpdating || !canEditOrgSettings}
+              disabled={isUpdating || !canEditOrgSettings || !platformAiEnabled}
             />
 
             <SettingRow

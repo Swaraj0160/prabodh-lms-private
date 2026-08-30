@@ -29,7 +29,7 @@ export async function generateMetadata({
   const ogImageUrl = seoConfig.default_og_image
     ? getOrgOgImageMediaDirectory(org?.org_uuid, seoConfig.default_og_image)
     : null
-  const imageUrl = ogImageUrl || (org ? getOrgThumbnailMediaDirectory(org.org_uuid, org.thumbnail_image) : undefined)
+  const imageUrl = ogImageUrl || (org?.thumbnail_image ? getOrgThumbnailMediaDirectory(org.org_uuid, org.thumbnail_image) : undefined)
   const title = buildPageTitle('Boards', org?.name || 'Organization', seoConfig)
   const description = org?.description || seoConfig.default_meta_description || `Collaborative boards from ${org?.name || 'this organization'}`
   const canonical = await getServerCanonicalUrl(orgslug, '/boards')

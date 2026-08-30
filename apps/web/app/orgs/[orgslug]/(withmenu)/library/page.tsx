@@ -22,7 +22,9 @@ export async function generateMetadata(props: MetadataProps): Promise<Metadata> 
   const ogImageUrl = seoConfig.default_og_image
     ? getOrgOgImageMediaDirectory(org?.org_uuid, seoConfig.default_og_image)
     : null
-  const imageUrl = ogImageUrl || getOrgThumbnailMediaDirectory(org?.org_uuid, org?.thumbnail_image)
+  const imageUrl = ogImageUrl || (org?.thumbnail_image
+    ? getOrgThumbnailMediaDirectory(org?.org_uuid, org?.thumbnail_image)
+    : null)
   const canonical = await getServerCanonicalUrl(params.orgslug, '/library')
   const title = buildPageTitle('Library', org.name, seoConfig)
   const description = org.description || seoConfig.default_meta_description || ''
@@ -48,20 +50,15 @@ export async function generateMetadata(props: MetadataProps): Promise<Metadata> 
       title,
       description,
       type: 'website',
-      images: [
-        {
-          url: imageUrl,
-          width: 800,
-          height: 600,
-          alt: org.name,
-        },
-      ],
+      ...(imageUrl
+        ? { images: [{ url: imageUrl, width: 800, height: 600, alt: org.name }] }
+        : {}),
     },
     twitter: {
-      card: 'summary_large_image',
+      card: imageUrl ? 'summary_large_image' : 'summary',
       title,
       description,
-      images: [imageUrl],
+      ...(imageUrl ? { images: [imageUrl] } : {}),
       ...(seoConfig.twitter_handle && { site: seoConfig.twitter_handle }),
     },
   }

@@ -76,6 +76,15 @@ function CreateCourseModal({ closeModal, orgslug }: any) {
     },
     validationSchema,
     onSubmit: async (values, { setSubmitting }) => {
+      // orgId loads asynchronously from orgslug (see getOrgMetadata below) —
+      // guard against a submit that races ahead of it, which previously sent
+      // `org_id=null` to the backend and failed with an opaque 422.
+      if (!orgId) {
+        toast.error(t('courses.failed_to_create_course'))
+        setSubmitting(false)
+        return
+      }
+
       const toast_loading = toast.loading(t('courses.creating_course'))
 
       try {
@@ -363,8 +372,8 @@ function CreateCourseModal({ closeModal, orgslug }: any) {
       <div className="flex justify-end mt-6">
         <button
           type="submit"
-          disabled={formik.isSubmitting}
-          className="px-4 py-2 bg-black text-white text-sm font-bold rounded-md"
+          disabled={formik.isSubmitting || !orgId}
+          className="px-4 py-2 bg-black text-white text-sm font-bold rounded-md disabled:opacity-50"
         >
           {formik.isSubmitting ? (
             <BarLoader

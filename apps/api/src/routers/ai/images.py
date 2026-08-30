@@ -25,6 +25,7 @@ from src.db.ai.generations import AIGenerationKind
 from src.db.organizations import Organization
 from src.db.users import PublicUser
 from src.security.auth import get_authenticated_user
+from src.security.features_utils.dependencies import require_ai_enabled
 from src.security.features_utils.usage import refund_ai_credit, reserve_ai_credit
 from src.security.org_auth import is_org_member, enforce_org_mfa
 from src.services.ai.generations import (
@@ -44,7 +45,7 @@ from src.services.utils.upload_content import read_content, upload_content
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_ai_enabled)])
 
 # Generating an image is markedly more expensive than a text turn.
 IMAGE_CREDIT_COST = 5

@@ -18,6 +18,7 @@ from src.db.courses.courses import Course
 from src.db.organizations import Organization
 from src.db.users import PublicUser
 from src.security.auth import get_authenticated_user
+from src.security.features_utils.dependencies import require_ai_enabled
 from src.security.features_utils.usage import refund_ai_credit, reserve_ai_credit
 from src.security.org_auth import is_org_member, enforce_org_mfa
 from src.security.rbac import check_resource_access, AccessAction
@@ -37,7 +38,7 @@ from src.services.security.rate_limiting import enforce_ai_rate_limit
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_ai_enabled)])
 
 QUIZ_CREDIT_COST = 2
 

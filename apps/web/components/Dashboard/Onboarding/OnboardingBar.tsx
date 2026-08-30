@@ -662,52 +662,15 @@ export default function OnboardingBar() {
                                       </div>
                                     )}
 
-                                  {/* Teach the world — LearnHouse University link */}
+                                  {/* Teach the world step. The University/Classroom resource
+                                      links here used to point at LearnHouse's own external
+                                      learnhouse.io resource sites — removed for white-labelling
+                                      (Prabodh has no equivalent public resources yet; see
+                                      frontend-open-questions.md). The completion button is
+                                      untouched so the onboarding flow still works. */}
                                   {step.id === 'teach_the_world' &&
                                     !step.completed && (
                                       <div className="relative px-3 pb-3 space-y-2">
-                                        <a
-                                          href="https://university.learnhouse.io"
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white nice-shadow hover:bg-gray-50 transition-colors"
-                                        >
-                                          <img
-                                            src="/UNI_LOGO.png"
-                                            alt="LearnHouse University"
-                                            className="h-9 w-auto shrink-0 rounded"
-                                          />
-                                          <div className="min-w-0">
-                                            <p className="text-xs font-semibold text-gray-700">
-                                              {t('onboarding.steps.teach_the_world.university')}
-                                            </p>
-                                            <p className="text-[11px] text-gray-400">
-                                              {t('onboarding.steps.teach_the_world.university_desc')}
-                                            </p>
-                                          </div>
-                                          <span className="text-gray-300 shrink-0 ml-auto">→</span>
-                                        </a>
-                                        <a
-                                          href="https://classroom.learnhouse.io"
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white nice-shadow hover:bg-gray-50 transition-colors"
-                                        >
-                                          <img
-                                            src="/theclassroom.png"
-                                            alt="The Classroom"
-                                            className="h-9 w-auto shrink-0 rounded"
-                                          />
-                                          <div className="min-w-0">
-                                            <p className="text-xs font-semibold text-gray-700">
-                                              {t('onboarding.steps.teach_the_world.classroom')}
-                                            </p>
-                                            <p className="text-[11px] text-gray-400">
-                                              {t('onboarding.steps.teach_the_world.classroom_desc')}
-                                            </p>
-                                          </div>
-                                          <span className="text-gray-300 shrink-0 ml-auto">→</span>
-                                        </a>
                                         <button
                                           onClick={() => {
                                             track(AnalyticsEvent.OnboardingStepCompleted, { step_id: 'teach_the_world' })

@@ -3,6 +3,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, KeyRound, Loader2 } from 'lucide-react'
 import useAdminStatus from '@components/Hooks/useAdminStatus'
+import { getLEARNHOUSE_DOMAIN_VAL } from '@services/config/config'
 import { Switch } from '@components/ui/switch'
 import { Checkbox } from '@components/ui/checkbox'
 import { Button } from '@components/ui/button'
@@ -28,6 +29,7 @@ import {
 const OrgSignInMethods: React.FC = () => {
   const { t } = useTranslation()
   const { canManageOrg } = useAdminStatus()
+  const platformDomain = getLEARNHOUSE_DOMAIN_VAL()
   const {
     orgId,
     policy,
@@ -144,13 +146,13 @@ const OrgSignInMethods: React.FC = () => {
           <div className="min-w-0 pt-4">
             <Label htmlFor="central-session-sharing" className="cursor-pointer">
               {t('dashboard.organization.security.session_sharing_label', {
-                defaultValue: 'Allow sharing sessions with learnhouse.io',
+                defaultValue: `Allow sharing sessions with ${platformDomain}`,
               })}
             </Label>
             <p className="text-xs text-gray-500 mt-0.5 leading-relaxed max-w-xl">
               {t('dashboard.organization.security.session_sharing_hint', {
                 defaultValue:
-                  'When off, signing in at learnhouse.io won’t let members into this org — they must sign in again from this org’s login page using an allowed method.',
+                  `When off, signing in at ${platformDomain} won’t let members into this org — they must sign in again from this org’s login page using an allowed method.`,
               })}
             </p>
           </div>

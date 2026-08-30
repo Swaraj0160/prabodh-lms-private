@@ -333,6 +333,58 @@ async def require_boards_feature(
     return True
 
 
+async def require_ai_enabled(
+    current_user: PublicUser | AnonymousUser | APITokenUser = Depends(get_current_user),
+) -> bool:
+    """
+    Platform-level dependency that rejects every AI request when the operator
+    has not enabled AI for this deployment (``LEARNHOUSE_IS_AI_ENABLED``,
+    default false). Apply this at router level (``APIRouter(dependencies=...)``)
+    on every AI router so no AI endpoint is reachable while the platform flag
+    is off — previously ``is_ai_enabled`` was parsed into config but never
+    actually checked anywhere, so every AI endpoint stayed fully live
+    regardless of the flag.
+
+    Requires authentication first (raises 401 for an anonymous caller) before
+    even checking the platform flag: every AI endpoint already requires auth
+    via its own ``Depends(get_authenticated_user)``, but FastAPI resolves
+    router-level ``dependencies=[...]`` before a path operation's own
+    parameters. Without this, an anonymous request would hit the platform-flag
+    check first and get 403 "AI not enabled" instead of 401 — leaking whether
+    AI is configured to a caller who was never authenticated, and breaking the
+    "unauthenticated callers always get 401, never a feature-state-dependent
+    code" contract the AI routers otherwise all uphold (see
+    ``test_unauth_ai_billing.py``). ``get_current_user`` is used (not
+    ``get_authenticated_user``) purely so this dependency's own error is a
+    plain "not authenticated" 401 rather than duplicating a second identical
+    401 check with different wording; FastAPI caches the resolved user per
+    request, so the endpoint's own ``get_authenticated_user`` call costs
+    nothing extra.
+
+    This is intentionally independent of the per-organization ``ai`` feature
+    flag (``check_ai_credits`` / ``reserve_ai_credit``): the platform flag is a
+    single global on/off switch the deployment operator controls; the org flag
+    is a per-tenant toggle an org admin controls. Both must pass — an org
+    admin turning their org's AI toggle on has no effect if the platform
+    operator has not enabled and configured AI at all.
+    """
+    from config.config import get_learnhouse_config
+
+    if isinstance(current_user, AnonymousUser):
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required to use AI features",
+        )
+
+    cfg = get_learnhouse_config().ai_config
+    if not getattr(cfg, "is_ai_enabled", False):
+        raise HTTPException(
+            status_code=403,
+            detail="AI features are not enabled on this platform.",
+        )
+    return True
+
+
 async def require_playgrounds_feature(
     request: Request,
     db_session: AsyncSession = Depends(get_db_session),

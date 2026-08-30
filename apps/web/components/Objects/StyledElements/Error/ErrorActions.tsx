@@ -100,7 +100,12 @@ export default function ErrorActions({ resolutions, reset, eventId, loginNext }:
   const loginHref = loginNext
     ? `/login?next=${encodeURIComponent(loginNext)}`
     : '/login'
-  const supportHref = getPlatformUrl('/contact') || 'mailto:support@learnhouse.io'
+  // Previously fell back to LearnHouse's own support inbox
+  // (mailto:support@learnhouse.io) — routing Prabodh's error page to a
+  // different company's support address. Falls back to an in-app placeholder
+  // instead; no real Prabodh support contact has been supplied yet (see
+  // docs/prabodh/frontend-open-questions.md).
+  const supportHref = getPlatformUrl('/contact') || '/contact'
 
   return (
     <div className="flex flex-wrap justify-center gap-3">

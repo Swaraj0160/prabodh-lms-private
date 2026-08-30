@@ -60,6 +60,7 @@ asyncio_default_fixture_loop_scope = "function"
 markers = [
     "asyncio: mark test as async",
     "ollama: live test that requires a local Ollama server (opt-in; skipped if unreachable)",
+    "gemini_live: live test that requires a real Gemini API key (opt-in; skipped if unconfigured)",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",

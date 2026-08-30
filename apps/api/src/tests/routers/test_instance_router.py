@@ -44,7 +44,8 @@ class TestInstanceRouter:
             hosting_config=SimpleNamespace(
                 frontend_domain="localhost:3000",
                 tenancy="multi",
-            )
+            ),
+            ai_config=SimpleNamespace(is_ai_enabled=False),
         )
         with patch(
             "src.routers.instance.get_cached_instance_info",
@@ -70,6 +71,7 @@ class TestInstanceRouter:
         assert body["top_domain"] == "localhost"
         assert body["tenancy"] == "multi"
         assert body["multi_org_enabled"] is True
+        assert body["is_ai_enabled"] is False
         mock_set_cache.assert_called_once()
 
     async def test_get_instance_info_single_tenancy(self, client, db, org):
@@ -79,7 +81,8 @@ class TestInstanceRouter:
             hosting_config=SimpleNamespace(
                 frontend_domain="learn.example.org",
                 tenancy="single",
-            )
+            ),
+            ai_config=SimpleNamespace(is_ai_enabled=False),
         )
         with patch(
             "src.routers.instance.get_cached_instance_info",
@@ -108,7 +111,8 @@ class TestInstanceRouter:
             hosting_config=SimpleNamespace(
                 frontend_domain="learnhouse.ai",
                 tenancy="single",
-            )
+            ),
+            ai_config=SimpleNamespace(is_ai_enabled=False),
         )
         bad_session = Mock()
         bad_session.exec.side_effect = RuntimeError("db error")

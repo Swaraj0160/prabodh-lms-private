@@ -28,10 +28,11 @@ from src.services.ai.schemas.editor import (
 from src.core.events.database import get_db_session
 from src.db.users import PublicUser
 from src.security.auth import get_authenticated_user
+from src.security.features_utils.dependencies import require_ai_enabled
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_ai_enabled)])
 
 
 @router.post(

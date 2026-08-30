@@ -1,9 +1,22 @@
 """AI closed-caption engine: audio → WebVTT (transcription) and VTT → VTT (translation).
 
 Uses the provider-agnostic LLM layer (`src.services.ai.llm.generate`), so it follows
-the org's configured provider (Gemini by default) and its multimodal support. Long audio
-is segmented, transcribed per chunk, and stitched back with time offsets so a two-hour
-lecture works the same as a two-minute clip.
+the org's configured provider and its multimodal support. Long audio is segmented,
+transcribed per chunk, and stitched back with time offsets so a two-hour lecture works
+the same as a two-minute clip.
+
+CAPABILITY NOTE (Prabodh Part 2): transcription sends audio bytes as a multimodal
+attachment (see `llm.client.attachments_to_parts`). Gemini — the CURRENT active provider
+(`provider: google`, see docs/prabodh/part2-gemini-provider.md) — natively accepts audio
+input, so this feature is expected to work as designed while Gemini is active. This is
+provider-dependent, not universal: Claude's public API accepts text, images, and PDF
+documents as input but NOT native audio, so if this deployment is ever switched to
+`provider: anthropic` (fully supported — see llm/tiers.py), this feature will fail
+per-chunk with a clear provider error (not silent corruption) rather than transcribe.
+Untested against a live call either way in this environment — no API key was available at
+the time of either provider's Part 2 pass (see part2-ai-verification.md /
+part2-gemini-provider.md for exact blocked-status detail); documented as the expected
+behavior per each provider's known capabilities, not as an observed result.
 
 This module is pure/orchestration-only: no DB, no Redis, no storage. `caption_jobs`
 wires it to the video pipeline, R2, and org credit metering.

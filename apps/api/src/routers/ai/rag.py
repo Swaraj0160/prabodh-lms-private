@@ -20,6 +20,7 @@ from src.db.organization_config import OrganizationConfig
 from src.db.organizations import Organization
 from src.db.users import PublicUser, AnonymousUser, APITokenUser
 from src.security.auth import get_current_user, get_authenticated_user, resolve_acting_user_id
+from src.security.features_utils.dependencies import require_ai_enabled
 from src.security.features_utils.usage import reserve_ai_credit
 from src.security.org_auth import is_org_member, require_org_admin, enforce_org_mfa
 from src.services.ai.base import (
@@ -39,7 +40,7 @@ from src.services.ai.llm import model_for_tier
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_ai_enabled)])
 
 
 # ============================================================================

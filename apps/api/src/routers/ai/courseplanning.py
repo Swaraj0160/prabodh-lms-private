@@ -19,6 +19,7 @@ from src.core.events.database import get_db_session
 from src.db.users import PublicUser, AnonymousUser, APITokenUser
 from src.security.auth import get_current_user, resolve_acting_user_id
 from src.security.org_auth import is_org_member, enforce_org_mfa
+from src.security.features_utils.dependencies import require_ai_enabled
 from src.security.features_utils.usage import (
     reserve_ai_credit,
 )
@@ -46,7 +47,7 @@ from src.services.ai.schemas.courseplanning import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_ai_enabled)])
 
 
 async def event_generator(generator, session_uuid: str):

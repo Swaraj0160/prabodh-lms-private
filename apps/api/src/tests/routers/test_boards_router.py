@@ -18,7 +18,7 @@ from src.routers.boards.boards_playground import (
     get_org_ai_model as get_boards_org_ai_model,
 )
 from src.security.auth import get_authenticated_user, get_current_user
-from src.security.features_utils.dependencies import require_boards_feature
+from src.security.features_utils.dependencies import require_ai_enabled, require_boards_feature
 
 
 async def _single_chunk_stream():
@@ -40,6 +40,7 @@ def app(db, admin_user):
     app.dependency_overrides[get_current_user] = lambda: admin_user
     app.dependency_overrides[get_authenticated_user] = lambda: admin_user
     app.dependency_overrides[require_boards_feature] = lambda: True
+    app.dependency_overrides[require_ai_enabled] = lambda: True
     yield app
     app.dependency_overrides.clear()
 

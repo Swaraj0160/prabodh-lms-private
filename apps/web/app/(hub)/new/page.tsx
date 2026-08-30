@@ -46,7 +46,7 @@ import UserAvatar from '@components/Objects/UserAvatar'
 import { createNewOrganization } from '@services/organizations/orgs'
 import { useLHAnalytics } from '@services/analytics/useLHAnalytics'
 import { AnalyticsEvent } from '@services/analytics/events'
-import { getAPIUrl, getUriWithOrg } from '@services/config/config'
+import { getAPIUrl, getUriWithOrg, isMultiOrgModeEnabled, getDefaultOrg } from '@services/config/config'
 import { apiFetch } from '@services/utils/ts/requests'
 import {
   DropdownMenu,
@@ -750,6 +750,20 @@ export default function CreateNewOrgPage() {
     }
   }, [isLoading, isAuthenticated, router])
 
+  // Single-organisation deployment (Prabodh): this flow creates a whole new
+  // top-level organisation, which single-org builds don't support. Frontend
+  // hiding is cosmetic, not enforcement — the backend is expected to reject
+  // org creation independently — but the UI must not offer an action it
+  // can't complete. Redirect straight into the single default org rather
+  // than /home (also multi-org UI — see home.tsx — which would otherwise
+  // bounce an org-less user right back here, looping). See
+  // docs/prabodh/frontend-open-questions.md.
+  useEffect(() => {
+    if (!isMultiOrgModeEnabled()) {
+      router.replace(getUriWithOrg(getDefaultOrg(), '/'))
+    }
+  }, [router])
+
   // Load the user's existing orgs to detect whether they already have a free org
   // (which makes the free plan unavailable, mirroring the platform's 1-free-org cap).
   const { data: orgs } = useQuery({
@@ -969,7 +983,7 @@ export default function CreateNewOrgPage() {
             <div className="flex justify-center">
               <Link href="/home">
                 { }
-                <img src="/lrn.svg" alt="LearnHouse" width={40} height={40} className="opacity-90" />
+                <img src="/lrn.svg" alt="Prabodh" width={40} height={40} className="opacity-90" />
               </Link>
             </div>
             <div className="flex justify-end">

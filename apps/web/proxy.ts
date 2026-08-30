@@ -28,6 +28,7 @@ interface InstanceInfo {
   tenancy: 'multi' | 'single'
   frontend_domain: string
   top_domain: string
+  is_ai_enabled: boolean
 }
 
 // Cached instance info from backend (30-second TTL)
@@ -47,7 +48,7 @@ async function getInstanceInfo(): Promise<InstanceInfo> {
       // Older backends only return `multi_org_enabled`; derive `tenancy`.
       const tenancy: 'multi' | 'single' =
         raw.tenancy === 'multi' || raw.multi_org_enabled ? 'multi' : 'single'
-      _instanceCache = { data: { ...raw, tenancy }, ts: Date.now() }
+      _instanceCache = { data: { ...raw, tenancy, is_ai_enabled: !!raw.is_ai_enabled }, ts: Date.now() }
       return _instanceCache.data
     }
   } catch {
@@ -60,6 +61,8 @@ async function getInstanceInfo(): Promise<InstanceInfo> {
     tenancy: 'single',
     frontend_domain: 'localhost:3000',
     top_domain: 'localhost',
+    // Fail closed: if the backend is unreachable, don't tell the UI AI is on.
+    is_ai_enabled: false,
   }
 }
 
@@ -173,6 +176,7 @@ function setInstanceCookies(response: NextResponse, info: InstanceInfo) {
   response.cookies.set({ name: 'LH_frontend_domain', value: info.frontend_domain, path: '/' })
   response.cookies.set({ name: 'LH_top_domain', value: info.top_domain, path: '/' })
   response.cookies.set({ name: 'LH_mode', value: info.mode, path: '/' })
+  response.cookies.set({ name: 'LH_ai_enabled', value: String(info.is_ai_enabled), path: '/' })
   return response
 }
 
@@ -440,6 +444,18 @@ export default async function proxy(req: NextRequest) {
   // -------------------------------------------------------------------------
   if (pathname.startsWith('/health')) {
     return NextResponse.rewrite(new URL(`/api/health`, req.url))
+  }
+
+  // -------------------------------------------------------------------------
+  // 7b. Standalone legal/support pages — no org context needed
+  //
+  //    These are top-level routes (app/terms, app/privacy, app/contact), not
+  //    org-scoped pages. Without this pass-through they fell through to the
+  //    tenant catch-all (#11 below), which rewrites to /orgs/{slug}/terms —
+  //    a route that doesn't exist — and every visit 404'd.
+  // -------------------------------------------------------------------------
+  if (pathname === '/terms' || pathname === '/privacy' || pathname === '/contact') {
+    return NextResponse.rewrite(new URL(`${pathname}${search}`, req.url))
   }
 
   // -------------------------------------------------------------------------

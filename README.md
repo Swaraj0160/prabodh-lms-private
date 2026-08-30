@@ -1,142 +1,76 @@
-<p align="center">
-  <a href="https://learnhouse.app">
-    <img src=".github/images/learnhouse-github.png" alt="LearnHouse" width="600" />
-  </a>
-</p>
+# Prabodh
 
-<h3 align="center">The next-gen open-source platform for world-class educational content.</h3>
+Prabodh is a white-labelled, single-organisation learning management platform, built on top of the open-source [LearnHouse](https://github.com/learnhouse/learnhouse) project (AGPL-3.0). It is not a from-scratch product — the underlying platform, architecture, and a large share of the codebase are LearnHouse's own work, licensed under AGPL-3.0. See `LICENSE` for the exact terms and `docs/prabodh/` for what has actually been changed on top of it.
 
-<p align="center">
-  <a href="https://github.com/learnhouse/learnhouse/blob/main/LICENSE"><img src="https://img.shields.io/github/license/learnhouse/learnhouse?style=flat&color=blue" alt="License" /></a>
-  <a href="https://github.com/learnhouse/learnhouse/stargazers"><img src="https://img.shields.io/github/stars/learnhouse/learnhouse?style=flat" alt="Stars" /></a>
-  <a href="https://www.npmjs.com/package/learnhouse"><img src="https://img.shields.io/npm/v/learnhouse?style=flat&label=cli" alt="CLI Version" /></a>
-  <a href="https://app.codecov.io/gh/learnhouse/learnhouse"><img src="https://img.shields.io/codecov/c/github/learnhouse/learnhouse?flag=api&label=api%20coverage" alt="API Coverage" /></a>
-  <a href="https://github.com/learnhouse/learnhouse/commits"><img src="https://img.shields.io/github/last-commit/learnhouse/learnhouse?style=flat&label=last%20commit" alt="Last Commit" /></a>
-  <a href="https://github.com/learnhouse/learnhouse/issues"><img src="https://img.shields.io/github/issues/learnhouse/learnhouse?style=flat" alt="Issues" /></a>
-  <a href="https://github.com/learnhouse/learnhouse/pulls"><img src="https://img.shields.io/github/issues-pr/learnhouse/learnhouse?style=flat&label=PRs" alt="Pull Requests" /></a>
-</p>
+This repository is a private handoff snapshot of the current Prabodh implementation for the project team.
 
-<p align="center">
-📖 <b>Courses</b> — Create and manage courses with ease<br>
-✏️ <b>Editor</b> — Powerful block-based Notion-like content editor<br>
-📦 <b>Collections</b> — Organize courses into curated bundles<br>
-📝 <b>Assignments</b> — Create tasks and track student submissions<br>
-💬 <b>Discussions</b> — Community forums for your learners<br>
-🎙️ <b>Podcasts</b> — Audio content for on-the-go learning<br>
-📊 <b>Analytics</b> — Track engagement and course performance<br>
-🧊 <b>Playgrounds</b> — AI-generated interactive elements, simulations & diagrams<br>
-💻 <b>Code</b> — Real code execution with auto-grading in 30+ languages<br>
-📋 <b>Boards</b> — Real-time collaborative whiteboards<br>
-🧠 <b>AI</b> — Context-aware AI for learning & teaching<br>
-🎓 <b>Certificates</b> — Auto-generate certificates on course completion<br>
-👥 <b>User Groups</b> — Organize learners and control access<br>
-🔍 <b>SEO</b> — Built-in SEO optimization with metadata, sitemaps & open graph<br>
-🎨 <b>Customization</b> — Custom branding, landing pages & theming<br>
-💳 <b>Payments (Enterprise)</b> — Sell courses with no fees and no lock-in<br>
-🔐 <b>SSO (Enterprise)</b> — Single sign-on with OAuth providers<br>
-🏢 <b>Multi-Org (Enterprise)</b> — Run multiple organizations from a single instance<br>
-</p>
+## What has been implemented
 
-## 🚀 Get Started
+### Frontend white-labelling (`apps/web`)
+- LearnHouse branding replaced with Prabodh across every user-visible screen, page title, navigation element, and error/empty state that was checked (auth screens, dashboard, course pages, 404, certificates). A branding leak baked into an SVG's vector path data (not plain text) was found and fixed — a reminder that a text-only grep sweep is not sufficient on its own.
+- The multi-organisation UI (org creation, org switcher, org-picker signup path) is hidden/redirected on the frontend for single-tenancy mode. **Note:** the corresponding backend enforcement (rejecting a second org at the API level) was checked and does not exist yet — this is a frontend-only gate today, not a backend security boundary.
+- UI restricted to English only; the other 21 shipped locale files are left in place but unreachable, per the project's own instruction not to delete them.
+- A public marketing/landing page was built using the platform's existing config-driven landing-page system, with factual, non-invented copy (no unapproved claims about the product).
+- PWA manifest, `robots.txt`/sitemap, and Open Graph metadata are in place. A real bug where `og:image` pointed at a broken URL on several pages was found and fixed.
+- Certificate generation and the public certificate-verification page were rebranded; a real certificate was generated through the actual product flow and the exported PDF file itself (not just the on-screen preview) was inspected byte-for-byte to confirm it was clean.
+- Placeholder Terms of Service, Privacy Policy, and Contact pages exist and state plainly that real content is pending — no legal or contact information has been invented.
 
-LearnHouse has an official CLI that handles everything — self-hosting, updates, backups, and local development.
+### AI integration (`apps/api`, Gemini)
+- The backend's AI layer is provider-agnostic (built on Pydantic AI) — this abstraction pre-dates this project's AI work. **Google Gemini is the currently configured provider** for local/demo use; Anthropic/Claude support is fully retained and can be switched back to with a config-only change.
+- Features implemented and exercised: chat/Copilot, AI Course Creator (course-plan generation and per-activity content generation), assignment generation, scenario generation, Magic Blocks (editor AI), Playground generation, Board generation, RAG (course-content embedding, retrieval, and grounded Q&A via Copilot), text-to-speech/audio generation.
+- Image generation is implemented but is currently blocked by the configured API key having zero free-tier quota for that specific model — this is an account/billing limitation, not a code defect.
+- A platform-wide AI enable/disable flag now actually has effect (previously it was read from config but never enforced anywhere).
+- Cost controls (per-organisation credit reservation with refund-on-failure), rate limiting, and usage logging were already present in the codebase and were verified to still function correctly under real Gemini traffic.
 
-### Self-host
+## What has NOT been done
+
+- **No production deployment.** This has only ever been run locally. No hosting account, domain, or CI/CD pipeline has been set up.
+- **No backend single-org enforcement.** The API will currently accept a request to create a second organisation; only the frontend UI hides the path to do so.
+- **No official brand assets.** Logo, favicon, colour palette, typography, and Open Graph image are all still placeholders or LearnHouse's own files — real design assets have not been supplied.
+- **No approved marketing copy or legal text.** The public website's copy is deliberately generic and factual; Terms/Privacy pages are placeholders.
+- **No baseline UI screenshots or Playwright end-to-end run** were captured before white-labelling started, and the e2e suite (`apps/e2e`) has not been run against this codebase.
+
+See `docs/prabodh/TEAM_HANDOFF.md` and the other files in `docs/prabodh/` for the full, itemised status of every area, including what was actually live-tested versus what was only code-reviewed.
+
+## Local development setup
+
+Prerequisites: Node 18+, Python (pinned per `apps/api/pyproject.toml`), [`uv`](https://github.com/astral-sh/uv), [`bun`](https://bun.sh), and Docker (for Postgres + Redis).
 
 ```bash
-npx learnhouse@latest setup
+# 1. Start Postgres + Redis (and, if used, the Cloudflare tunnel) via your existing
+#    Docker setup for this project.
+
+# 2. Backend
+cd apps/api
+cp .env.example .env      # fill in real values — see below
+uv run python app.py      # http://localhost:1338
+
+# 3. Frontend (separate terminal)
+cd apps/web
+cp .env.example .env.local
+bun install
+bun run dev                # http://localhost:3000
 ```
 
-The setup wizard walks you through domain, database, admin account, and optional features. Once done, it generates all config files and starts your instance.
+On Windows, the bundled `learnhouse` CLI's own dev-orchestration command has a known PATH-detection issue and does not reliably start both services — running `apps/api` and `apps/web` directly, as above, is the confirmed-working path in this environment.
 
-```bash
-npx learnhouse start       # Start services
-npx learnhouse stop        # Stop services
-npx learnhouse update      # Update to latest version
-npx learnhouse logs        # Stream logs
-npx learnhouse backup      # Backup database
-npx learnhouse doctor      # Diagnose issues
-```
+### Environment variables
 
-### Development
+Full, documented templates are provided at `apps/api/.env.example` and `apps/web/.env.example` — copy them and fill in real values locally. **Never commit a real `.env`/`.env.local` file.** At minimum you will need:
 
-```bash
-git clone https://github.com/learnhouse/learnhouse.git
-cd learnhouse
-npx learnhouse dev
-```
+- A JWT signing secret for auth (`LEARNHOUSE_AUTH_JWT_SECRET_KEY`)
+- A Postgres connection string and a Redis connection string
+- To enable AI features: `LEARNHOUSE_IS_AI_ENABLED=true`, `LEARNHOUSE_AI_PROVIDER=google`, and a real Gemini API key in `LEARNHOUSE_AI_API_KEY` — AI stays off by default until these are set
 
-This spins up PostgreSQL and Redis, installs dependencies, and starts the API, Web, and Collab servers with hot reload.
+No API key, password, or other secret value is stored anywhere in this repository.
 
-> See the full [CLI documentation](apps/cli/README.md) for all commands and options.
+## Testing
 
-## 🛠️ Tech Stack
+- Backend (`pytest`, run from `apps/api`): last verified at 4,466 passing / 13 failing / 29 skipped. The 13 failures are pre-existing and environment-dependent (an SSRF check rejecting a test URL in this network, storage-configuration-dependent tests, and one Windows path-separator assertion) — not caused by any Prabodh-specific change.
+- Frontend (`bun test`, run from `apps/web`): last verified at 68 passing / 1 failing / 1 error, both pre-existing and unrelated to this project's changes.
+- A dedicated live-Gemini test suite exists (`apps/api/src/tests/services/test_llm_gemini.py`) — it is skipped automatically unless a real Gemini key is configured, so it never requires network access in CI.
+- Frontend production build (`bun run build`) passes cleanly.
 
-<p align="center">
-<a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-000?style=flat&logo=nextdotjs&logoColor=white" alt="Next.js" /></a>
-<a href="https://react.dev"><img src="https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black" alt="React" /></a>
-<a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript" /></a>
-<a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/TailwindCSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white" alt="TailwindCSS" /></a>
-<a href="https://www.radix-ui.com"><img src="https://img.shields.io/badge/Radix_UI-161618?style=flat&logo=radixui&logoColor=white" alt="Radix UI" /></a>
-<a href="https://tiptap.dev"><img src="https://img.shields.io/badge/Tiptap-1a1a2e?style=flat&logoColor=white" alt="Tiptap" /></a>
-<a href="https://codemirror.net"><img src="https://img.shields.io/badge/CodeMirror-D30707?style=flat&logo=codemirror&logoColor=white" alt="CodeMirror" /></a>
-<a href="https://yjs.dev"><img src="https://img.shields.io/badge/Yjs-6EEB83?style=flat&logoColor=black" alt="Yjs" /></a>
-<a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
-<a href="https://www.python.org"><img src="https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white" alt="Python" /></a>
-<a href="https://www.postgresql.org"><img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white" alt="PostgreSQL" /></a>
-<a href="https://redis.io"><img src="https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white" alt="Redis" /></a>
-<a href="https://www.docker.com"><img src="https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white" alt="Docker" /></a>
-<a href="https://stripe.com"><img src="https://img.shields.io/badge/Stripe-635BFF?style=flat&logo=stripe&logoColor=white" alt="Stripe" /></a>
-<a href="https://ai.google.dev"><img src="https://img.shields.io/badge/Gemini-8E75B2?style=flat&logo=googlegemini&logoColor=white" alt="Gemini" /></a>
-<a href="https://www.llamaindex.ai"><img src="https://img.shields.io/badge/LlamaIndex-000?style=flat&logoColor=white" alt="LlamaIndex" /></a>
-<a href="https://aws.amazon.com/s3"><img src="https://img.shields.io/badge/AWS_S3-569A31?style=flat&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0xMiAyTDIgN3YxMGwxMCA1IDEwLTVWN0wxMiAyem0wIDIuMThMMTkuMTggNyAxMiA5LjgyIDQuODIgNyAxMiA0LjE4ek00IDguNjRsNyAzLjVWMTkuNWwtNy0zLjVWOC42NHptMTAgMTAuODZWMTIuMTRsNy0zLjV2Ny4zNmwtNyAzLjV6Ii8+PC9zdmc+&logoColor=white" alt="AWS S3" /></a>
-<a href="https://www.tinybird.co"><img src="https://img.shields.io/badge/Tinybird-1A1A1A?style=flat&logoColor=white" alt="Tinybird" /></a>
-</p>
+## Repository / branch notes
 
-## 📁 Project Structure
-
-| App | Path | Description | Technology | Used by |
-|-----|------|-------------|------------|---------|
-| **Web** | `apps/web` | Frontend application — dashboard, course player, editor, landing pages | Next.js, React, TailwindCSS, Tiptap | Teachers, Students, Admins |
-| **API** | `apps/api` | Backend REST API — auth, courses, payments, AI, analytics | FastAPI, Python, SQLModel, Alembic | Web, CLI, Collab |
-| **Collab** | `apps/collab` | Real-time collaboration server — live editing sync for courses & boards | Hocuspocus, Yjs, WebSocket | Web (editor, boards) |
-| **CLI** | `apps/cli` | Official CLI — setup wizard, dev environment, instance management | Commander, Node.js | Developers, Self-hosters |
-
-## 💬 Community
-
-- [Discord](https://discord.gg/CMyZjjYZ6x) — chat with the team and other users
-- [Documentation](https://docs.learnhouse.app) — guides and references
-
-## 🤝 Contributing
-
-```bash
-git clone https://github.com/learnhouse/learnhouse.git
-cd learnhouse
-npx learnhouse dev
-```
-
-- [Contributing Guide](CONTRIBUTING.md)
-- [Submit a bug](https://github.com/learnhouse/learnhouse/issues/new?assignees=&labels=bug%2Ctriage&projects=&template=bug.yml&title=%5BBug%5D%3A+)
-- [Good first issues](https://github.com/learnhouse/learnhouse/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
-
-## 🔒 Security
-
-We take the security of LearnHouse and the data entrusted to us seriously. If you discover a vulnerability, please email **security@learnhouse.app** — do not disclose it publicly until we've had a chance to investigate.
-
-Please include a clear description, steps to reproduce, affected endpoints, and any relevant screenshots or proof-of-concept code. We will acknowledge your report, keep you informed, and credit you once resolved if you wish.
-
-See our full [Security Policy](https://learnhouse.app/security) for details on our practices, scope, and responsible disclosure guidelines.
-
-## ✍️ Author & Maintainer
-
-Sweave (Badr B.) — [@swve](https://github.com/swve)
-
-## 💜 A Word
-
-LearnHouse is made with 💜, from the UI to the features it is carefully designed to make students and teachers lives easier and make education software more enjoyable.
-
-Thank you and have fun using/developing/testing LearnHouse !
-
-## 📄 License
-
-[AGPL-3.0](LICENSE) — Enterprise features are available under a separate Enterprise License.
+This repository was packaged from the working tree of the project's implementation branch. See `docs/prabodh/TEAM_HANDOFF.md` for exactly what state it reflects and how to pick up the remaining work.

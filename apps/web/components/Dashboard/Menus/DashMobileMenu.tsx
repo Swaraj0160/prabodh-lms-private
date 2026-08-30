@@ -22,12 +22,10 @@ import {
   X,
   Check,
   ChatCircleDots,
-  Book,
   CaretDown,
   MagnifyingGlass,
   Code,
 } from '@phosphor-icons/react'
-import { DiscordIcon } from '@components/Objects/Icons/DiscordIcon'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React, { useState } from 'react'
@@ -101,7 +99,7 @@ function DashMobileMenu() {
           >
             <img
               src="/lrn-dash.svg"
-              alt="LearnHouse"
+              alt="Prabodh"
               className="h-[18px] w-[18px] opacity-60 hover:opacity-90 transition-opacity"
               style={{ filter: 'brightness(0) invert(1)' }}
             />
@@ -197,7 +195,7 @@ function DashMobileMenu() {
                   />
                 ) : (
                   <div className="h-7 w-7 flex items-center justify-center bg-white/[0.06] rounded-lg">
-                    <img src="/lrn-dash.svg" alt="LearnHouse" className="h-4 w-4" style={{ filter: 'brightness(0) invert(1)' }} />
+                    <img src="/lrn-dash.svg" alt="Prabodh" className="h-4 w-4" style={{ filter: 'brightness(0) invert(1)' }} />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -236,42 +234,38 @@ function DashMobileMenu() {
 
                 <PanelItem href="/account/general" icon={<Gear size={15} weight="fill" />} label={t('common.settings')} active={isActive('/account')} onClick={close} />
 
-                {/* Language picker */}
-                <button
-                  onClick={() => setLangExpanded(v => !v)}
-                  className="flex items-center w-full rounded-lg px-2.5 py-2 gap-2.5 text-white/40 hover:text-white/80 hover:bg-white/[0.05] transition-all"
-                >
-                  <Globe size={15} weight="fill" />
-                  <span className="text-sm font-medium flex-1 text-left">{t('common.language')}</span>
-                  <CaretDown size={10} weight="bold" className={cn('transition-transform', langExpanded && 'rotate-180')} />
-                </button>
-                {langExpanded && (
-                  <div className="ml-2 pl-3 border-l border-white/[0.05] space-y-px">
-                    {AVAILABLE_LANGUAGES.map(lang => (
-                      <button
-                        key={lang.code}
-                        onClick={() => { changeLanguage(lang.code); setLangExpanded(false) }}
-                        className="flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg text-sm text-white/40 hover:text-white/80 hover:bg-white/[0.05] transition-all"
-                      >
-                        <span className="font-medium">{lang.nativeName}</span>
-                        {i18n.language.split('-')[0] === lang.code && <Check size={11} weight="bold" className="text-green-500" />}
-                      </button>
-                    ))}
-                  </div>
+                {/* Language picker — Prabodh ships English only, so a switcher
+                    with one option is dead UI. */}
+                {AVAILABLE_LANGUAGES.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => setLangExpanded(v => !v)}
+                      className="flex items-center w-full rounded-lg px-2.5 py-2 gap-2.5 text-white/40 hover:text-white/80 hover:bg-white/[0.05] transition-all"
+                    >
+                      <Globe size={15} weight="fill" />
+                      <span className="text-sm font-medium flex-1 text-left">{t('common.language')}</span>
+                      <CaretDown size={10} weight="bold" className={cn('transition-transform', langExpanded && 'rotate-180')} />
+                    </button>
+                    {langExpanded && (
+                      <div className="ml-2 pl-3 border-l border-white/[0.05] space-y-px">
+                        {AVAILABLE_LANGUAGES.map(lang => (
+                          <button
+                            key={lang.code}
+                            onClick={() => { changeLanguage(lang.code); setLangExpanded(false) }}
+                            className="flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg text-sm text-white/40 hover:text-white/80 hover:bg-white/[0.05] transition-all"
+                          >
+                            <span className="font-medium">{lang.nativeName}</span>
+                            {i18n.language.split('-')[0] === lang.code && <Check size={11} weight="bold" className="text-green-500" />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
 
-                <a href="https://docs.learnhouse.app" target="_blank" rel="noopener noreferrer"
-                  className="flex items-center w-full rounded-lg px-2.5 py-2 gap-2.5 text-white/40 hover:text-white/80 hover:bg-white/[0.05] transition-all"
-                >
-                  <Book size={15} weight="fill" />
-                  <span className="text-sm font-medium">{t('common.help_menu.documentation')}</span>
-                </a>
-                <a href="https://discord.gg/learnhouse" target="_blank" rel="noopener noreferrer"
-                  className="flex items-center w-full rounded-lg px-2.5 py-2 gap-2.5 text-white/40 hover:text-white/80 hover:bg-white/[0.05] transition-all"
-                >
-                  <DiscordIcon size={15} />
-                  <span className="text-sm font-medium">{t('common.help_menu.discord')}</span>
-                </a>
+                {/* Documentation / Discord links removed for white-labelling —
+                    those pointed at LearnHouse's own docs/community; Prabodh has
+                    no equivalent yet (see frontend-open-questions.md). */}
                 <button
                   onClick={() => { setFeedbackModalOpen(true); close() }}
                   className="flex items-center w-full rounded-lg px-2.5 py-2 gap-2.5 text-white/40 hover:text-white/80 hover:bg-white/[0.05] transition-all"

@@ -439,6 +439,12 @@ IMPORTANT: You MUST incorporate the materials provided above into the course pla
         user_prompt = [user_text, *attachment_parts] if attachment_parts else user_text
 
         # Stream raw JSON text chunks (parsed into a CoursePlan after completion).
+        # Explicit max_tokens for the same reason as generate_activity_content_stream
+        # below: a multi-chapter course plan is verbose JSON and a larger/richer
+        # request (more chapters, more activities per chapter) can exceed the
+        # shared 4096-token default and get truncated mid-document. A small test
+        # plan (5 chapters) fit under the default; nothing guarantees a real one
+        # will.
         full_response = ""
         async for chunk in generate_stream(
             model_name=model_name or model_for_tier("standard"),
@@ -446,6 +452,7 @@ IMPORTANT: You MUST incorporate the materials provided above into the course pla
             system_prompt=system_prompt,
             history=history,
             timeout=300.0,
+            max_tokens=16000,
         ):
             full_response += chunk
             yield chunk
@@ -519,6 +526,19 @@ Please modify the content according to the user's request. Output ONLY the compl
             user_prompt = prompt or f"Generate comprehensive educational content for this activity: {activity_name}"
 
         # Stream raw JSON text chunks (parsed downstream).
+        #
+        # Explicit max_tokens: a full activity — headings, paragraphs, callouts,
+        # lists, and often an embedded quiz block — is a verbose ProseMirror JSON
+        # document (structural overhead per text run) that routinely exceeds the
+        # shared client.py default (DEFAULT_MAX_OUTPUT_TOKENS = 4096, sized for
+        # short chat replies). Hitting that ceiling here doesn't fail loudly: the
+        # stream just stops mid-string, producing truncated JSON the frontend's
+        # parseActivityContentFromStream() can't parse — surfaced to the user as
+        # a generic "Failed to parse content", not an error naming the real
+        # cause. Reproduced directly against a real Gemini call: a real activity
+        # response ran to 12k+ characters and was STILL mid-quiz-question at the
+        # 4096-token cutoff. 16000 gives real headroom for a full lesson + quiz
+        # without removing the cap outright.
         full_response = ""
         async for chunk in generate_stream(
             model_name=model_name or model_for_tier("standard"),
@@ -526,6 +546,7 @@ Please modify the content according to the user's request. Output ONLY the compl
             system_prompt=system_prompt,
             temperature=0.7,
             timeout=300.0,
+            max_tokens=16000,
         ):
             full_response += chunk
             yield chunk

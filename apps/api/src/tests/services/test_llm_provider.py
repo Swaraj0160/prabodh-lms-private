@@ -18,6 +18,7 @@ from src.services.ai.llm import (
 )
 from src.services.ai.llm import provider as provider_mod
 from src.services.ai.llm import embeddings as embeddings_mod
+from src.services.ai.llm import tiers as tiers_mod
 
 
 def _patch_ai_config(monkeypatch, **overrides):
@@ -144,11 +145,47 @@ def test_attachments_to_parts():
     assert attachments_to_parts(None) == []
 
 
-def test_model_for_tier_defaults():
-    # With no config overrides, the three tiers resolve to the Gemini 3 family defaults.
+def _patch_tiers_ai_config(monkeypatch, **overrides):
+    """Point model_for_tier at a synthetic ai_config (tiers.py imports
+    get_learnhouse_config independently of provider.py, so it needs its own patch target)."""
+    fields = {
+        "provider": None, "model_fast": None, "model_standard": None, "model_pro": None,
+    }
+    fields.update(overrides)
+    cfg = SimpleNamespace(**fields)
+    monkeypatch.setattr(
+        tiers_mod, "get_learnhouse_config", lambda: SimpleNamespace(ai_config=cfg)
+    )
+
+
+def test_model_for_tier_defaults_gemini(monkeypatch):
+    # provider=google (the current active Prabodh provider, and also the DEFAULT_PROVIDER
+    # fallback when provider is unset) resolves to the Gemini 3 family defaults.
+    _patch_tiers_ai_config(monkeypatch, provider="google")
     assert model_for_tier("fast") == "gemini-3.1-flash-lite"
-    assert model_for_tier("standard") == "gemini-3.5-flash"
+    assert model_for_tier("standard") == "gemini-3.6-flash"
     assert model_for_tier("pro") == "gemini-3.1-pro-preview"
+
+
+def test_model_for_tier_defaults_unset_provider_falls_back_to_gemini(monkeypatch):
+    # No provider configured at all -> DEFAULT_PROVIDER ("google") -> Gemini defaults,
+    # matching the "no config change needed" behavior documented in provider.py.
+    _patch_tiers_ai_config(monkeypatch, provider=None)
+    assert model_for_tier("fast") == "gemini-3.1-flash-lite"
+
+
+def test_model_for_tier_defaults_claude_still_available(monkeypatch):
+    # Anthropic support must remain fully selectable — switching provider is a config
+    # change only, per the Part 2 provider-agnostic design.
+    _patch_tiers_ai_config(monkeypatch, provider="anthropic")
+    assert model_for_tier("fast") == "claude-haiku-4-5-20251001"
+    assert model_for_tier("standard") == "claude-sonnet-5"
+    assert model_for_tier("pro") == "claude-opus-5"
+
+
+def test_model_for_tier_explicit_override_wins_over_provider_default(monkeypatch):
+    _patch_tiers_ai_config(monkeypatch, provider="google", model_fast="gemini-3.5-flash")
+    assert model_for_tier("fast") == "gemini-3.5-flash"
 
 
 # --- Provider-agnostic embeddings ---------------------------------------------------------

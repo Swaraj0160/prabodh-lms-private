@@ -443,7 +443,7 @@ const CertificatePreview: React.FC<CertificatePreviewProps> = ({
         <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
           <div className="flex items-center space-x-1">
             <Hash className={`w-3 h-3 sm:w-4 sm:h-4 ${theme.icon}`} />
-            <span className={`text-xs sm:text-sm ${theme.secondary} font-medium`}>ID: {certificateId || 'LH-2024-001'}</span>
+            <span className={`text-xs sm:text-sm ${theme.secondary} font-medium`}>ID: {certificateId || 'PRB-2024-001'}</span>
           </div>
         </div>
 
@@ -532,16 +532,23 @@ const CertificatePreview: React.FC<CertificatePreviewProps> = ({
         {/* Bottom Section */}
         <div className="relative z-10 mt-auto p-6 pt-8">
           <div className="flex items-end justify-between w-full">
-            {/* Left: Teacher/Organization Signature */}
+            {/* Left: Teacher/Organization Signature. Instructor is an optional
+                field (see the editor form) — this must never fabricate a name
+                on a REAL issued certificate, so an unset value hides the whole
+                block rather than falling back to a placeholder person. */}
             <div className="flex flex-col items-start space-y-1 flex-1">
-              <div className="flex items-center space-x-1">
-                <User className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${theme.icon}`} />
-                <span className={`text-xs ${theme.secondary} font-medium`}>Instructor</span>
-              </div>
-              <div className={`text-xs ${theme.primary} font-semibold`}>
-                {certificateInstructor || 'Dr. Jane Smith'}
-              </div>
-              <div className={`h-px w-10 sm:w-12 ${theme.secondary.replace('text-', 'bg-')} opacity-50`}></div>
+              {certificateInstructor ? (
+                <>
+                  <div className="flex items-center space-x-1">
+                    <User className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${theme.icon}`} />
+                    <span className={`text-xs ${theme.secondary} font-medium`}>Instructor</span>
+                  </div>
+                  <div className={`text-xs ${theme.primary} font-semibold`}>
+                    {certificateInstructor}
+                  </div>
+                  <div className={`h-px w-10 sm:w-12 ${theme.secondary.replace('text-', 'bg-')} opacity-50`}></div>
+                </>
+              ) : null}
             </div>
 
             {/* Center: Logo */}
@@ -560,7 +567,7 @@ const CertificatePreview: React.FC<CertificatePreviewProps> = ({
                 )}
               </div>
               <div className={`text-xs ${theme.secondary} font-medium`}>
-                {org?.name || 'LearnHouse'}
+                {org?.name || 'Prabodh'}
               </div>
             </div>
 

@@ -10,6 +10,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.core.events.database import get_db_session
 from src.db.users import PublicUser, APITokenUser
 from src.security.auth import get_current_user, get_authenticated_user, resolve_acting_user_id
+from src.security.features_utils.dependencies import require_ai_enabled
 from src.security.features_utils.usage import (
     reserve_ai_credit,
 )
@@ -29,7 +30,7 @@ from src.services.boards.schemas.boards_playground import (
 )
 
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_ai_enabled)])
 
 
 async def event_generator(generator, session_uuid: str):

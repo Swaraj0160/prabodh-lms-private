@@ -21,7 +21,7 @@ from src.routers.playgrounds.playgrounds_generator import (
     get_org_ai_model as get_playground_org_ai_model,
 )
 from src.security.auth import get_current_user
-from src.security.features_utils.dependencies import require_playgrounds_feature
+from src.security.features_utils.dependencies import require_ai_enabled, require_playgrounds_feature
 
 
 async def _single_chunk_stream():
@@ -41,6 +41,7 @@ def app(db, admin_user):
     app.dependency_overrides[get_db_session] = lambda: db
     app.dependency_overrides[get_current_user] = lambda: admin_user
     app.dependency_overrides[require_playgrounds_feature] = lambda: True
+    app.dependency_overrides[require_ai_enabled] = lambda: True
     yield app
     app.dependency_overrides.clear()
 

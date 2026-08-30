@@ -23,6 +23,10 @@ const LanguageSwitcher = ({ primaryColor = '' }: { primaryColor?: string }) => {
 
   const currentLangCode = mounted ? i18n.language.split('-')[0].toUpperCase() : ''
 
+  // Prabodh ships English only (Frontend Track §7.3) — a dropdown offering a
+  // single, already-selected option is dead UI, not a real switcher.
+  if (AVAILABLE_LANGUAGES.length <= 1) return null
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

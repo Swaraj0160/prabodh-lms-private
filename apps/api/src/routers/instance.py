@@ -58,6 +58,12 @@ async def get_instance_info(db_session: AsyncSession = Depends(get_db_session)):
         "default_org_slug": default_org_slug,
         "frontend_domain": frontend_domain,
         "top_domain": top_domain,
+        # Platform-wide AI switch (LEARNHOUSE_IS_AI_ENABLED). Public because it's not
+        # a secret — an anonymous caller finds out AI is off the same way they'd find
+        # out from any AI endpoint returning 403 anyway (see require_ai_enabled). The
+        # frontend uses this to show accurate AI-availability state instead of the
+        # per-org "ai" toggle alone, which has no visibility into this platform flag.
+        "is_ai_enabled": bool(config.ai_config.is_ai_enabled),
     }
 
     set_cached_instance_info(result)

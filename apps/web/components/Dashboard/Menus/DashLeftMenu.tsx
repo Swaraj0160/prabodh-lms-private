@@ -17,7 +17,6 @@ import {
   CaretDown,
   PencilSimple,
   ChatsCircle,
-  Book,
   ChatCircleDots,
   Headphones,
   ChartBar,
@@ -44,7 +43,6 @@ import {
   Lightning,
 } from '@phosphor-icons/react'
 import { motion } from 'motion/react'
-import { DiscordIcon } from '@components/Objects/Icons/DiscordIcon'
 import CommandPaletteTrigger from '@components/Dashboard/CommandPalette/CommandPaletteTrigger'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -261,7 +259,7 @@ function DashLeftMenu() {
           ) : (
             <img
               src="/lrn-dash.svg"
-              alt="Learnhouse logo"
+              alt="Prabodh logo"
               className="h-8 w-8"
             />
           )}
@@ -1057,44 +1055,47 @@ function DashLeftMenu() {
             </Tooltip>
           )}
 
-          {/* Language Switcher with hover menu */}
-          <HoverMenu
-            align="end"
-            content={
-              <HoverMenuContent className="w-64 max-h-96 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                <HoverMenuLabel className="flex items-center gap-2 text-white/70 font-medium">
-                  <Globe size={16} weight="fill" />
-                  <span>{t('common.language')}</span>
-                </HoverMenuLabel>
-                <HoverMenuSeparator />
-                {AVAILABLE_LANGUAGES.map((language) => (
-                  <HoverMenuItem
-                    key={language.code}
-                    onClick={() => changeLanguage(language.code)}
-                    className="flex items-center justify-between px-3 py-2.5 cursor-pointer text-white/70 hover:text-white hover:bg-white/[0.08] transition-colors"
-                  >
-                    <div className="flex flex-col">
-                      <span className="font-medium text-sm">{language.nativeName}</span>
-                      <span className="text-xs text-white/40">{t(language.translationKey)}</span>
-                    </div>
-                    {i18n.language.split('-')[0] === language.code && (
-                      <Check size={16} weight="bold" className="text-green-500" />
-                    )}
-                  </HoverMenuItem>
-                ))}
-              </HoverMenuContent>
-            }
-          >
-            <button aria-label="Open language menu" className={cn(
-              "flex items-center w-full rounded-lg text-white/50 hover:text-white hover:bg-white/[0.08] transition-all group",
-              isCollapsed ? "justify-center h-10" : "px-3 py-2 gap-3"
-            )}>
-              <Globe size={20} weight="fill" />
-              {!isCollapsed && (
-                <span className="text-sm font-medium">{t('common.language')}</span>
-              )}
-            </button>
-          </HoverMenu>
+          {/* Language Switcher with hover menu — Prabodh ships English only,
+              so a switcher with one option is dead UI. */}
+          {AVAILABLE_LANGUAGES.length > 1 && (
+            <HoverMenu
+              align="end"
+              content={
+                <HoverMenuContent className="w-64 max-h-96 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                  <HoverMenuLabel className="flex items-center gap-2 text-white/70 font-medium">
+                    <Globe size={16} weight="fill" />
+                    <span>{t('common.language')}</span>
+                  </HoverMenuLabel>
+                  <HoverMenuSeparator />
+                  {AVAILABLE_LANGUAGES.map((language) => (
+                    <HoverMenuItem
+                      key={language.code}
+                      onClick={() => changeLanguage(language.code)}
+                      className="flex items-center justify-between px-3 py-2.5 cursor-pointer text-white/70 hover:text-white hover:bg-white/[0.08] transition-colors"
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-medium text-sm">{language.nativeName}</span>
+                        <span className="text-xs text-white/40">{t(language.translationKey)}</span>
+                      </div>
+                      {i18n.language.split('-')[0] === language.code && (
+                        <Check size={16} weight="bold" className="text-green-500" />
+                      )}
+                    </HoverMenuItem>
+                  ))}
+                </HoverMenuContent>
+              }
+            >
+              <button aria-label="Open language menu" className={cn(
+                "flex items-center w-full rounded-lg text-white/50 hover:text-white hover:bg-white/[0.08] transition-all group",
+                isCollapsed ? "justify-center h-10" : "px-3 py-2 gap-3"
+              )}>
+                <Globe size={20} weight="fill" />
+                {!isCollapsed && (
+                  <span className="text-sm font-medium">{t('common.language')}</span>
+                )}
+              </button>
+            </HoverMenu>
+          )}
 
           {/* Help with hover menu */}
           <HoverMenu
@@ -1106,40 +1107,9 @@ function DashLeftMenu() {
                   <span>{t('common.help')}</span>
                 </HoverMenuLabel>
                 <HoverMenuSeparator />
-                <HoverMenuItem asChild>
-                  <a
-                    href="https://docs.learnhouse.app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/[0.08] cursor-pointer transition-colors"
-                  >
-                    <Book size={16} weight="fill" />
-                    <span>{t('common.help_menu.documentation')}</span>
-                  </a>
-                </HoverMenuItem>
-                <HoverMenuItem asChild>
-                  <a
-                    href="https://learnhouse.app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/[0.08] cursor-pointer transition-colors"
-                  >
-                    <Globe size={16} weight="fill" />
-                    <span>{t('common.help_menu.website')}</span>
-                  </a>
-                </HoverMenuItem>
-                <HoverMenuItem asChild>
-                  <a
-                    href="https://discord.gg/learnhouse"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/[0.08] cursor-pointer transition-colors"
-                  >
-                    <DiscordIcon size={16} />
-                    <span>{t('common.help_menu.discord')}</span>
-                  </a>
-                </HoverMenuItem>
-                <HoverMenuSeparator />
+                {/* Documentation / Website / Discord links removed for white-labelling —
+                    those pointed at LearnHouse's own site/community; Prabodh has no
+                    equivalent public docs/community yet (see frontend-open-questions.md). */}
                 <HoverMenuItem
                   onClick={() => setFeedbackModalOpen(true)}
                   className="flex items-center gap-2 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/[0.08] cursor-pointer transition-colors"

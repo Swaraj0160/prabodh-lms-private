@@ -16,6 +16,7 @@ import { PageViewTracker } from '@components/Analytics/PageViewTracker'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { usePlan } from '@components/Hooks/usePlan'
 import { getGoogleFontUrl, DEFAULT_FONT } from '@/lib/fonts'
+import { getDeploymentMode } from '@services/config/config'
 
 // Helper to convert hex to rgba
 const hexToRgba = (hex: string, alpha: number): string => {
@@ -32,7 +33,10 @@ function OrgFooter() {
   const plan = usePlan()
   const watermarkConfig = org?.config?.config?.customization?.general?.watermark ?? org?.config?.config?.general?.watermark
   const isFree = plan === 'free'
-  const showWatermark = isFree || watermarkConfig !== false
+  const mode = getDeploymentMode()
+  // A self-hosted OSS/EE deployment never carries LearnHouse's own
+  // promotional link, regardless of the org's billing plan — see Watermark.tsx.
+  const showWatermark = (mode !== 'oss' && mode !== 'ee') && (isFree || watermarkConfig !== false)
 
   return (
     <footer className="w-full py-8 mt-12">
@@ -42,7 +46,7 @@ function OrgFooter() {
           <Link href="https://learnhouse.app" target="_blank" rel="noopener noreferrer">
             <Image
               src="/lrn.svg"
-              alt="LearnHouse"
+              alt="Prabodh"
               width={24}
               height={24}
               style={{ height: 'auto' }}

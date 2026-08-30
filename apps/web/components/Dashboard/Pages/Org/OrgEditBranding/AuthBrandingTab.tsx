@@ -19,6 +19,7 @@ import { queryKeys } from '@/lib/query/keys'
 import UnsplashImagePicker, { UnsplashPhotoMeta } from '@components/Dashboard/Pages/Course/EditCourseGeneral/UnsplashImagePicker'
 import AIImageButton from '@components/Objects/AI/AIImageButton'
 import { usePlan } from '@components/Hooks/usePlan'
+import { getDeploymentMode } from '@services/config/config'
 
 const SUPPORTED_FILES = constructAcceptValue(['png', 'jpg', 'webp'])
 
@@ -35,10 +36,11 @@ export default function AuthBrandingTab() {
 
   const existingConfig = org?.config?.config?.customization?.auth_branding || org?.config?.config?.general?.auth_branding || {}
 
-  // Check if org has enterprise plan - hide LearnHouse branding for enterprise users
-  // In OSS mode, always show branding regardless of plan
+  // Hide LearnHouse's own top-bar logo/link for enterprise users, and for any
+  // self-hosted OSS/EE deployment (mirrors AuthBrandingPanel.tsx / Watermark.tsx).
   const plan = usePlan()
-  const isEnterprise = plan === 'enterprise'
+  const deploymentMode = getDeploymentMode()
+  const isEnterprise = plan === 'enterprise' || deploymentMode === 'oss' || deploymentMode === 'ee'
 
   const [welcomeMessage, setWelcomeMessage] = useState<string>(existingConfig.welcome_message || '')
   const [backgroundType, setBackgroundType] = useState<BackgroundType>(existingConfig.background_type || 'gradient')

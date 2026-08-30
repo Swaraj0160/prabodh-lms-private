@@ -4,7 +4,7 @@ import { canManageOrgFromSession } from '@components/Hooks/useAdminStatus'
 import { useLHAnalytics } from '@services/analytics/useLHAnalytics'
 import { AnalyticsEvent } from '@services/analytics/events'
 import UserAvatar from '@components/Objects/UserAvatar'
-import { getAPIUrl, getUriWithOrg, getLEARNHOUSE_PLATFORM_URL_VAL } from '@services/config/config'
+import { getAPIUrl, getUriWithOrg, getLEARNHOUSE_PLATFORM_URL_VAL, isMultiOrgModeEnabled, getDefaultOrg } from '@services/config/config'
 import { apiFetch } from '@services/utils/ts/requests'
 import { signOut } from '@components/Contexts/AuthContext'
 import { getOrgLogoMediaDirectory } from '@services/media/media'
@@ -63,12 +63,25 @@ function HomeClient() {
 
   // A brand-new (org-less) user has no orgs yet — send them straight to create
   // their first org rather than a confusing empty hub. Mirrors the platform's
-  // post-signup onboarding hop.
+  // post-signup onboarding hop. (Multi-org deployments only — see the
+  // single-org redirect below.)
   useEffect(() => {
-    if (isAuthenticated && Array.isArray(orgs) && orgs.length === 0) {
+    if (isMultiOrgModeEnabled() && isAuthenticated && Array.isArray(orgs) && orgs.length === 0) {
       router.replace('/new')
     }
   }, [isAuthenticated, orgs, router])
+
+  // Single-organisation deployment (Prabodh): this whole page is an
+  // "organization picker" for accounts that belong to several LearnHouse
+  // orgs — a concept that doesn't apply here. Send everyone straight into
+  // the single default org instead of showing a picker with one entry (or a
+  // confusing empty state before `orgs` loads). See
+  // docs/prabodh/frontend-open-questions.md.
+  useEffect(() => {
+    if (!isMultiOrgModeEnabled()) {
+      router.replace(getUriWithOrg(getDefaultOrg(), '/'))
+    }
+  }, [router])
 
   return (
     <div className="fixed inset-0 z-[100] bg-white overflow-y-auto">
@@ -96,7 +109,7 @@ function HomeClient() {
               { }
               <img
                 src="/lrn.svg"
-                alt="LearnHouse"
+                alt="Prabodh"
                 width={44}
                 height={44}
                 className="opacity-90"
@@ -144,28 +157,31 @@ function HomeClient() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger className="flex items-center space-x-2">
-                        <Languages size={14} />
-                        <span>{t('common.language')}</span>
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent>
-                          {AVAILABLE_LANGUAGES.map((language) => (
-                            <DropdownMenuItem
-                              key={language.code}
-                              onClick={() => changeLanguage(language.code)}
-                              className="flex items-center justify-between"
-                            >
-                              <span>
-                                {t(language.translationKey)} ({language.nativeName})
-                              </span>
-                              {i18n.language.split('-')[0] === language.code && <Check size={14} />}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
+                    {/* Prabodh ships English only — a switcher with one option is dead UI. */}
+                    {AVAILABLE_LANGUAGES.length > 1 && (
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger className="flex items-center space-x-2">
+                          <Languages size={14} />
+                          <span>{t('common.language')}</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                          <DropdownMenuSubContent>
+                            {AVAILABLE_LANGUAGES.map((language) => (
+                              <DropdownMenuItem
+                                key={language.code}
+                                onClick={() => changeLanguage(language.code)}
+                                className="flex items-center justify-between"
+                              >
+                                <span>
+                                  {t(language.translationKey)} ({language.nativeName})
+                                </span>
+                                {i18n.language.split('-')[0] === language.code && <Check size={14} />}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                      </DropdownMenuSub>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => signOut({ redirect: true, callbackUrl: '/login' })}
@@ -238,12 +254,12 @@ function HomeClient() {
                 className="mt-10 flex items-center gap-1.5 text-[11px] text-black/30 hover:text-black/60 transition-colors"
               >
                 <span>{t('common.powered_by', { defaultValue: 'Powered by' })}</span>
-                <span className="font-semibold tracking-tight text-black/50 group-hover:text-black/70">LearnHouse</span>
+                <span className="font-semibold tracking-tight text-black/50 group-hover:text-black/70">Prabodh</span>
               </a>
             ) : (
               <div className="mt-10 flex items-center gap-1.5 text-[11px] text-black/30">
                 <span>{t('common.powered_by', { defaultValue: 'Powered by' })}</span>
-                <span className="font-semibold tracking-tight text-black/50">LearnHouse</span>
+                <span className="font-semibold tracking-tight text-black/50">Prabodh</span>
               </div>
             )}
             <CopyrightFooter year={new Date().getFullYear()} className="mt-4 pt-0" />
