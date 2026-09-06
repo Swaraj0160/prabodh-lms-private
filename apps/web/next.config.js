@@ -2,6 +2,15 @@ const { withSentryConfig } = require("@sentry/nextjs");
 
 /** @type {import('common.next').NextConfig} */
 const nextConfig = {
+  // Pin the Turbopack workspace root to this app directory. Without this,
+  // Next.js walks up the filesystem looking for the outermost lockfile and
+  // can lock onto an unrelated one higher up the tree (e.g. a stray
+  // ~/package-lock.json from an unrelated project on this machine), logging
+  // "Next.js inferred your workspace root" and risking incorrect path
+  // resolution. Harmless to pin explicitly either way.
+  turbopack: {
+    root: __dirname,
+  },
   // Required by PostHog's reverse-proxy rewrites below so the trailing-slash
   // handling on /ingest/* doesn't 308-redirect ingestion requests.
   skipTrailingSlashRedirect: true,
